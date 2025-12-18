@@ -12,18 +12,18 @@ export async function buildRoutes(): Promise<Routes> {
   const staticRoute = env.ASSETS ? await buildStaticRoute(staticFolderPath) : await buildDisabledStaticRoute();
 
   if (staticRoute) {
-    staticRoute.map((v) => {
+    for (const v of staticRoute) {
       routes[v.route] = v.handler;
-    });
+    }
   }
 
   const prerenderFolderPath = path.resolve(__dirname(), "prerendered");
   const prerenderRoutes = await buildPrerenderRoutes(prerenderFolderPath);
 
   if (prerenderRoutes) {
-    prerenderRoutes.map((v) => {
+    for (const v of prerenderRoutes) {
       routes[v.route] = v.handler;
-    });
+    }
   }
 
   return routes;
