@@ -60,16 +60,19 @@ export default function getDtsBunPlugin(): BunPlugin {
           if (args.path.startsWith(rootPath) && !wroteTrack.has(args.path)) {
             wroteTrack.add(args.path);
 
-            let { code } = isolatedDeclaration(args.path, await Bun.file(args.path).text());
+            const result = isolatedDeclaration(args.path, await Bun.file(args.path).text());
+            const code = result?.code;
 
-            code = code.replace(/import\s+.+\s+from\s+['"]([^'"]+)['"]/g, (match, path) =>
-              path.startsWith(".") && !path.endsWith(".ts") && !path.endsWith(".d.ts")
-                ? match.replace(path, `${path}.d.ts`)
-                : match,
-            );
+            if (code) {
+              const fixedCode = code.replace(/import\s+.+\s+from\s+['"]([^'"]+)['"]/g, (match, importPath) =>
+                importPath.startsWith(".") && !importPath.endsWith(".ts") && !importPath.endsWith(".d.ts")
+                  ? match.replace(importPath, `${importPath}.d.ts`)
+                  : match,
+              );
 
-            const dest = args.path.replace(new RegExp(`^${rootPath}`), outPath).replace(/\.ts$/, ".d.ts");
-            await Bun.write(dest, code);
+              const dest = args.path.replace(new RegExp(`^${rootPath}`), outPath).replace(/\.ts$/, ".d.ts");
+              await Bun.write(dest, fixedCode);
+            }
           }
 
           return undefined;
